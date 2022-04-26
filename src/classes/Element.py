@@ -1,4 +1,3 @@
-import glfw
 from OpenGL.GL import *
 import numpy as np
 from typing import List
