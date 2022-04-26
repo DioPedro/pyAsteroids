@@ -26,4 +26,12 @@ class Transform:
                          0.0, s_y, 0.0, 0.0,
                          0.0, 0.0, 1.0, 0.0,
                          0.0, 0.0, 0.0, 1.0], np.float32)
-            
+    @staticmethod
+    def stack(tranformations):
+        tranformations = reversed(tranformations)
+
+        finalTransformation = tranformations[0].reshape(4, 4)
+        for i in range(1, len(tranformations)):
+            finalTransformation = np.dot(finalTransformation, tranformations[i].reshape(4, 4))
+
+        return finalTransformation
