@@ -51,5 +51,9 @@ class Element:
 		glBindVertexArray(self.vao)
 
 	def draw(self):
+		glDrawArrays(GL_TRIANGLE_FAN, 0, self.elements.size)
+		glBindVertexArray(0)
+
+	def drawBorder(self):
 		glDrawArrays(GL_LINE_LOOP, 0, self.elements.size)
 		glBindVertexArray(0)
