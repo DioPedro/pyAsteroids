@@ -5,7 +5,7 @@ from classes.Shader import Shader
 from classes.Object import Object
 import classes.Transform as Transform
 import numpy as np
-from typing import Callable
+from typing import Callable, Tuple
 
 t_y = 0
 t_x = 0
@@ -85,16 +85,18 @@ def key_event(window, key, scancode, action, mods):
         r -= r_step
 
 
-def NAV_PATH(x: float):
-    return (np.sin(2 * x) + (np.sin(6 * x) / 4))
+def NAV_PATH(amplitude: float, x: float):
+    return amplitude * (np.sin(2 * x) + (np.sin(6 * x) / 4))
 
+def AMONG_PATH(a: int, b: int, x: float):
+    return (a * b / np.sqrt((b * np.cos(x)) ** 2 + (a * np.sin(x) ** 2)))
 
-def curvePath(amplitude: int, equation: Callable[[int], int]):
-    rads = np.arange(0, (2 * np.pi), 0.01)
+def curvePath(equation: Callable[[Tuple[int, ...]], int], args: Tuple[float, ...]):
+    rads = np.arange(0, (2 * np.pi), 0.005)
     amplitude = 10
     points = []
     for rad in rads:
-        r = amplitude * equation(rad)
+        r = equation(*args, rad)
         points.append([r * np.cos(rad), r * np.sin(rad)])
     return points
 
@@ -120,9 +122,9 @@ def display(
     glClear(GL_COLOR_BUFFER_BIT)
 
     rocketTransform = Transform.stack([
-        Transform.translate(t_x, t_y),
         Transform.scale(s, s),
-        Transform.rotate(r)
+        Transform.rotate(r),
+        Transform.translate(t_x, t_y)
     ])
     rocket.transform(rocketTransform)
 
@@ -271,10 +273,12 @@ def initElements():
 
 def main():
     global points
+    global am_path
     glfwInit()
     glInit()
     initElements()
-    points = curvePath(10, NAV_PATH)
+    points = curvePath(NAV_PATH, [10])
+    am_path
     while not glfw.window_should_close(window):
         display(
             sceneObjs["rocket"],
