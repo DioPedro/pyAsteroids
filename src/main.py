@@ -1,4 +1,3 @@
-from matplotlib.style import context
 from OpenGL.GL import glCreateProgram, GL_VERTEX_SHADER, glLinkProgram, glGetProgramiv, glGetProgramInfoLog, GL_LINK_STATUS, glUseProgram, glClear, glClearColor, GL_COLOR_BUFFER_BIT, GL_FRAGMENT_SHADER
 import glfw
 
@@ -7,7 +6,6 @@ from classes.Shader import Shader
 from classes.Object import Object
 import classes.Transform as Transform
 import numpy as np
-from typing import Callable, Tuple
 
 t_y = 0
 t_x = 0
@@ -89,7 +87,6 @@ def key_event(window, key, scancode, action, mods):
         r += r_step
     if scancode == 26:
         r -= r_step
-
 
 
 def multiplica_matriz(a: np.ndarray, b: np.ndarray):
@@ -180,7 +177,7 @@ def glInit():
 
 def initElements():
     sceneObjs = dict()
-    
+
     # Paleta de cores: https://github.com/dracula/dracula-theme
     sceneObjs['rocket'] = Object(program, [], None)
     sceneObjs['rocket'].addElement([
@@ -196,7 +193,11 @@ def initElements():
         (0.0, +0.5),
     ], [1, 121/255, 198/255])
 
-    sceneObjs['spaceship'] = Object(program, [], Path(curvePath(NAV_PATH, [10]), 0))
+    sceneObjs['spaceship'] = Object(
+        program,
+        [],
+        Path(curvePath(NAV_PATH, [10]), 0)
+    )
     sceneObjs['spaceship'].addElement([
         (-1.0, 0.0),
         (-0.7, 0.5),
@@ -215,7 +216,11 @@ def initElements():
         (0.5, 0.5),
     ], [80/255, 250/255, 123/255])
 
-    sceneObjs['amongus'] = Object(program, [], Path(curvePath(AMONG_PATH, [16, 9]), 0))
+    sceneObjs['amongus'] = Object(
+        program,
+        [],
+        Path(curvePath(AMONG_PATH, [16, 9]), 0)
+    )
     sceneObjs['amongus'].addElement([
         (-1.37, 1.02),
         (-1.15, 1.44),
@@ -270,7 +275,7 @@ def initElements():
         (0, 4),
         (2, 0),
         (0, -4)
-    ], [241/255, 250/255, 140/255]) # Star
+    ], [241/255, 250/255, 140/255])  # Star
 
     sceneObjs['asteroid'] = Object(program, [], None)
     sceneObjs['asteroid'].addElement([
@@ -297,8 +302,8 @@ def initElements():
         (-3.66, 1.82),
         (-3.68, 1.2),
         (-3.32, 0.4)
-    ], [68/255, 71/255, 90/255]) # Asteroid
-    
+    ], [68/255, 71/255, 90/255])  # Asteroid
+
     return sceneObjs
 
 
