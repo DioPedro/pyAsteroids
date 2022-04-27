@@ -7,7 +7,6 @@ from classes.Shader import Shader
 from classes.Object import Object
 import classes.Transform as Transform
 import numpy as np
-from typing import Callable, Tuple
 
 t_y = 0
 t_x = 0
@@ -89,7 +88,6 @@ def key_event(window, key, scancode, action, mods):
         r += r_step
     if scancode == 26:
         r -= r_step
-
 
 
 def multiplica_matriz(a: np.ndarray, b: np.ndarray):
@@ -184,7 +182,6 @@ def initElements():
 
     with open('./objects.json', 'r') as fp:
         data = json.load(fp)
-
     sceneObjs['rocket'] = Object(program, [], None)
     for element in data['rocket']['elements']:
         sceneObjs["rocket"].addElement(element["points"], element["color"] or BASE_COLOR)
