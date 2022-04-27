@@ -24,6 +24,13 @@ ar = 0
 
 points: list = []
 
+star_tuples = [
+    (0.1, (3, 3)),
+    (0.3, (3, -3)),
+    (0.05, (-3, -3)),
+    (0.15, (-3, 3))
+]
+
 window: any = None
 program: any = None
 
@@ -103,6 +110,14 @@ def display(
     glClearColor(BASE_COLOR[0], BASE_COLOR[1], BASE_COLOR[2], 1.0)
     glClear(GL_COLOR_BUFFER_BIT)
 
+    for scale, pos in star_tuples:
+        starTransform = Transform.stack([
+            Transform.scale(scale, scale),
+            Transform.translate(*pos),
+            Transform.scale(s, s)
+        ])
+        context['star'].transform(starTransform)
+
     rocketTransform = Transform.stack([
         Transform.scale(s, s),
         Transform.rotate(r),
@@ -116,13 +131,19 @@ def display(
     ])
     context['spaceship'].transform(spaceshipTransform)
 
-    amongusTranform = Transform.stack([
+    amongusTransform = Transform.stack([
         Transform.rotate(ar),
         Transform.translate(*context['amongus'].path.atPosition()),
         Transform.scale(ams, ams)
     ])
-    context['amongus'].transform(amongusTranform)
-    ar += 0.5
+    context['amongus'].transform(amongusTransform)
+    ar += 0.02
+
+    asteroidTransform = Transform.stack([
+        Transform.translate(0.5, 0.5),
+        Transform.scale(s, s)
+    ])
+    context['asteroid'].transform(asteroidTransform)
 
     glfw.swap_buffers(window)
 
@@ -250,6 +271,33 @@ def initElements():
         (2, 0),
         (0, -4)
     ], [241/255, 250/255, 140/255]) # Star
+
+    sceneObjs['asteroid'] = Object(program, [], None)
+    sceneObjs['asteroid'].addElement([
+        (-4, 0),
+        (-3.62, -0.88),
+        (-2.94, -1.6),
+        (-1.52, -2.42),
+        (-0.32, -2.5),
+        (0.84, -2.16),
+        (1.74, -1.58),
+        (1.6, -0.76),
+        (2.18, -0.34),
+        (2.54, 0.62),
+        (2.14, 1.3),
+        (1.66, 2.02),
+        (1.46, 2.92),
+        (0.48, 3.34),
+        (-0.22, 2.78),
+        (-1, 3),
+        (-1.64, 3.32),
+        (-2.2, 2.76),
+        (-2, 2),
+        (-2.9, 2.26),
+        (-3.66, 1.82),
+        (-3.68, 1.2),
+        (-3.32, 0.4)
+    ], [68/255, 71/255, 90/255]) # Asteroid
     
     return sceneObjs
 
