@@ -2,7 +2,7 @@ from OpenGL.GL import glCreateProgram, GL_VERTEX_SHADER, glLinkProgram, glGetPro
 import glfw
 
 import json
-from classes.Path import Path, curvePath, NAV_PATH, AMONG_PATH
+from classes.Path import Path, curvePath, NAV_PATH, AMONG_PATH, AST_PATH
 from classes.Shader import Shader
 from classes.Object import Object
 import classes.Transform as Transform
@@ -107,13 +107,6 @@ def display(
         ])
         context['star'].transform(starTransform)
 
-    rocketTransform = Transform.stack([
-        Transform.scale(s, s),
-        Transform.rotate(r),
-        Transform.translate(t_x, t_y)
-    ])
-    context['rocket'].transform(rocketTransform)
-
     spaceshipTransform = Transform.stack([
         Transform.translate(*context['spaceship'].path.atPosition()),
         Transform.scale(sll, sll)
@@ -130,19 +123,17 @@ def display(
 
     asteroidTransform = Transform.stack([
         Transform.scale(0.3, 0.3),
-        Transform.translate(*context['spaceship'].path.atPosition()),
+        Transform.translate(*context['asteroid'].path.atPosition()),
         Transform.scale(s, s)
     ])
     context['asteroid'].transform(asteroidTransform)
 
-    crateraTransform = Transform.stack([
-        Transform.scale(0.45, 0.45),
-        Transform.translate(*context['spaceship'].path.atPosition()),
-        Transform.scale(s, s)
+    rocketTransform = Transform.stack([
+        Transform.scale(s, s),
+        Transform.rotate(r),
+        Transform.translate(t_x, t_y)
     ])
-    context['cratera1'].transform(crateraTransform)
-    context['cratera2'].transform(crateraTransform)
-    context['cratera3'].transform(crateraTransform)
+    context['rocket'].transform(rocketTransform)
 
     glfw.swap_buffers(window)
 
@@ -202,56 +193,10 @@ def initElements():
     for element in data['star']["elements"]:
         sceneObjs['star'].addElement(element["points"], element["color"])
 
-    sceneObjs['asteroid'] = Object(program, [], None)
-    sceneObjs['asteroid'].addElement([
-        (-4, 0),
-        (-3.62, -0.88),
-        (-2.94, -1.6),
-        (-1.52, -2.42),
-        (-0.32, -2.5),
-        (0.84, -2.16),
-        (1.74, -1.58),
-        (1.6, -0.76),
-        (2.18, -0.34),
-        (2.54, 0.62),
-        (2.14, 1.3),
-        (1.66, 2.02),
-        (1.46, 2.92),
-        (0.48, 3.34),
-        (-0.22, 2.78),
-        (-1, 3),
-        (-1.64, 3.32),
-        (-2.2, 2.76),
-        (-2, 2),
-        (-2.9, 2.26),
-        (-3.66, 1.82),
-        (-3.68, 1.2),
-        (-3.32, 0.4)
-    ], [68/255, 71/255, 90/255]) # Asteroid
+    sceneObjs['asteroid'] = Object(program, [], Path(curvePath(AST_PATH, [5]), 0))
+    for element in data['asteroid']["elements"]:
+        sceneObjs['asteroid'].addElement(element["points"], element["color"])
 
-    sceneObjs['cratera1'] = Object(program, [], None)
-    sceneObjs['cratera1'].addElement([
-        (0.22, 1.32),
-        (0.68, 1.14),
-        (0.74, 1.74),
-        (0.24, 1.8)
-    ], [40/255, 42/255, 54/255]) # Asteroid
-
-    sceneObjs['cratera2'] = Object(program, [], None)
-    sceneObjs['cratera2'].addElement([
-        (-2.02, 0.3),
-        (-1.92, -0.08),
-        (-1.34, 0.14),
-        (-1.5, 0.7)
-    ], [40/255, 42/255, 54/255]) # Asteroid
-
-    sceneObjs['cratera3'] = Object(program, [], None)
-    sceneObjs['cratera3'].addElement([
-        (-0.5, -1.5),
-        (-0.8, -0.96),
-        (-0.5, -0.5),
-        (-0.08, -0.88)
-    ], [40/255, 42/255, 54/255]) # Asteroid
     return sceneObjs
 
 

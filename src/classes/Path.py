@@ -1,6 +1,9 @@
 from typing import List, Tuple, Callable
 import numpy as np    
 
+def AST_PATH(amplitude: float, x: float):
+    return amplitude * (np.sin(2 * x) + (np.cos(6 * x) / 4))
+
 def NAV_PATH(amplitude: float, x: float):
     return amplitude * (np.sin(2 * x) + (np.sin(6 * x) / 4))
 
