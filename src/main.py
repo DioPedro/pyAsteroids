@@ -1,6 +1,7 @@
 from OpenGL.GL import glCreateProgram, GL_VERTEX_SHADER, glLinkProgram, glGetProgramiv, glGetProgramInfoLog, GL_LINK_STATUS, glUseProgram, glClear, glClearColor, GL_COLOR_BUFFER_BIT, GL_FRAGMENT_SHADER
 import glfw
 
+from classes.Path import Path, curvePath, NAV_PATH, AMONG_PATH
 from classes.Shader import Shader
 from classes.Object import Object
 import classes.Transform as Transform
@@ -84,21 +85,6 @@ def key_event(window, key, scancode, action, mods):
     if scancode == 26:
         r -= r_step
 
-
-def NAV_PATH(amplitude: float, x: float):
-    return amplitude * (np.sin(2 * x) + (np.sin(6 * x) / 4))
-
-def AMONG_PATH(a: int, b: int, x: float):
-    return (a * b / np.sqrt((b * np.cos(x)) ** 2 + (a * np.sin(x) ** 2)))
-
-def curvePath(equation: Callable[[Tuple[int, ...]], int], args: Tuple[float, ...]):
-    rads = np.arange(0, (2 * np.pi), 0.005)
-    amplitude = 10
-    points = []
-    for rad in rads:
-        r = equation(*args, rad)
-        points.append([r * np.cos(rad), r * np.sin(rad)])
-    return points
 
 
 def multiplica_matriz(a: np.ndarray, b: np.ndarray):
@@ -198,7 +184,7 @@ def initElements():
         (0.0, +0.5),
     ], [1, 121/255, 198/255])
 
-    spaceship = Object(program, [])
+    spaceship = Object(program, [], Path(curvePath(NAV_PATH, [10]), 0))
     spaceship.addElement([
         (-1.0, 0.0),
         (-0.7, 0.5),
@@ -217,7 +203,7 @@ def initElements():
         (0.5, 0.5),
     ], [80/255, 250/255, 123/255])
 
-    amongus = Object(program, [])
+    amongus = Object(program, [], Path(curvePath(AMONG_PATH, [4, 9]), 0))
     amongus.addElement([
         (-1.37, 1.02),
         (-1.15, 1.44),
@@ -272,13 +258,9 @@ def initElements():
 
 
 def main():
-    global points
-    global am_path
     glfwInit()
     glInit()
     initElements()
-    points = curvePath(NAV_PATH, [10])
-    am_path
     while not glfw.window_should_close(window):
         display(
             sceneObjs["rocket"],

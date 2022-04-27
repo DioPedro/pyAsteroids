@@ -1,17 +1,19 @@
 from .Element import Element
+from .Path import Path
 import numpy as np
 from OpenGL.GL import glGetUniformLocation, glUniformMatrix4fv, GL_TRUE
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 
 class Object:
     def __init__(
             self,
             program: any,
-            elements: Tuple[Element, ...]
-    ):
+            elements: Tuple[Element, ...],
+            path: Union[None, Path]):
         self.program = program
         self.elements = elements
+        self.path = path
 
     def addElement(
             self,
@@ -34,3 +36,6 @@ class Object:
         for element in self.elements:
             element.bind()
             element.draw()
+        
+        if self.path:
+            self.path.increment()
