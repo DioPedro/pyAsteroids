@@ -1,4 +1,4 @@
-from OpenGL.GL import glCreateProgram, GL_VERTEX_SHADER, glLinkProgram, glGetProgramiv, glGetProgramInfoLog, GL_LINK_STATUS, glUseProgram, glClear, glClearColor, GL_COLOR_BUFFER_BIT, GL_FRAGMENT_SHADER
+from OpenGL.GL import glCreateProgram, GL_VERTEX_SHADER, glLinkProgram, glGetProgramiv, glGetProgramInfoLog, GL_LINK_STATUS, glUseProgram, glClear, glClearColor, GL_COLOR_BUFFER_BIT, GL_FRAGMENT_SHADER, glBindFragDataLocation
 import glfw
 
 from classes.Path import Path, curvePath, NAV_PATH, AMONG_PATH
@@ -159,6 +159,7 @@ def glInit():
         print(glGetProgramInfoLog(program))
         raise RuntimeError('Linking error')
 
+    glBindFragDataLocation(program, 0, "outColor")
     glUseProgram(program)
 
     del vertexShader, fragShader
