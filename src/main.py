@@ -1,6 +1,7 @@
-from OpenGL.GL import glCreateProgram, GL_VERTEX_SHADER, glLinkProgram, glGetProgramiv, glGetProgramInfoLog, GL_LINK_STATUS, glUseProgram, glClear, glClearColor, GL_COLOR_BUFFER_BIT, GL_FRAGMENT_SHADER
+from OpenGL.GL import glCreateProgram, GL_VERTEX_SHADER, glLinkProgram, glGetProgramiv, glGetProgramInfoLog, GL_LINK_STATUS, glUseProgram, glClear, glClearColor, GL_COLOR_BUFFER_BIT, GL_FRAGMENT_SHADER, glBindFragDataLocation
 import glfw
 
+import json
 from classes.Path import Path, curvePath, NAV_PATH, AMONG_PATH
 from classes.Shader import Shader
 from classes.Object import Object
@@ -11,22 +12,21 @@ t_y = 0
 t_x = 0
 r = 0
 s = 0.15
+ss = 0.15
 sll = 0.1
 r_step = 0.05
 s_step = 0.01
 
 ams = 0.05
-ax = [i/1000 for i in range(-50000, 51000, 50)]
-ay = [i/1000 for i in range(50000, -51000, -50)]
 ar = 0
 
 points: list = []
 
 star_tuples = [
     (0.1, (3, 3)),
-    (0.3, (3, -3)),
+    (0.08, (3, -3)),
     (0.05, (-3, -3)),
-    (0.15, (-3, 3))
+    (0.15, (-3, 3)),
 ]
 
 window: any = None
@@ -34,26 +34,15 @@ program: any = None
 
 BASE_COLOR = [98/255, 114/255, 164/255]
 
-VERTEX_CODE = """
-attribute vec2 position;
-uniform mat4 mat_transformation;
+with open("vShader.glsl", "r") as f:
+    VERTEX_CODE = f.read()
 
-void main() {
-    gl_Position = mat_transformation * vec4(position, 0.0, 1.0);
-}
-"""
-
-FRAGMENT_CODE = """
-uniform vec4 color;
-
-void main() {
-    gl_FragColor = color;
-}
-"""
+with open("fShader.glsl", "r") as f:
+    FRAGMENT_CODE = f.read()
 
 
 def key_event(window, key, scancode, action, mods):
-    global t_x, t_y, r
+    global t_x, t_y, r, ss
 
     if key == 87:
         t_y += 0.01  # cima
@@ -87,7 +76,10 @@ def key_event(window, key, scancode, action, mods):
         r += r_step
     if scancode == 26:
         r -= r_step
-
+    if key == 45:
+        ss -= s_step
+    if key == 61:
+        ss += s_step
 
 def multiplica_matriz(a: np.ndarray, b: np.ndarray):
     m_a = a.reshape(4, 4)
@@ -111,7 +103,7 @@ def display(
         starTransform = Transform.stack([
             Transform.scale(scale, scale),
             Transform.translate(*pos),
-            Transform.scale(s, s)
+            Transform.scale(ss, ss)
         ])
         context['star'].transform(starTransform)
 
@@ -137,10 +129,20 @@ def display(
     ar += 0.02
 
     asteroidTransform = Transform.stack([
-        Transform.translate(0.5, 0.5),
+        Transform.scale(0.3, 0.3),
+        Transform.translate(*context['spaceship'].path.atPosition()),
         Transform.scale(s, s)
     ])
     context['asteroid'].transform(asteroidTransform)
+
+    crateraTransform = Transform.stack([
+        Transform.scale(0.45, 0.45),
+        Transform.translate(*context['spaceship'].path.atPosition()),
+        Transform.scale(s, s)
+    ])
+    context['cratera1'].transform(crateraTransform)
+    context['cratera2'].transform(crateraTransform)
+    context['cratera3'].transform(crateraTransform)
 
     glfw.swap_buffers(window)
 
@@ -152,6 +154,8 @@ def glfwInit():
     window = glfw.create_window(600, 600, "Cores", None, None)
     glfw.window_hint(glfw.RESIZABLE, glfw.FALSE)
     glfw.window_hint(glfw.MAXIMIZED, glfw.FALSE)
+    glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 4)
+    glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
     glfw.make_context_current(window)
     glfw.set_key_callback(window, key_event)
     glfw.show_window(window)
@@ -170,6 +174,7 @@ def glInit():
         print(glGetProgramInfoLog(program))
         raise RuntimeError('Linking error')
 
+    glBindFragDataLocation(program, 0, "outColor")
     glUseProgram(program)
 
     del vertexShader, fragShader
@@ -177,105 +182,25 @@ def glInit():
 
 def initElements():
     sceneObjs = dict()
+    data = None
 
-    # Paleta de cores: https://github.com/dracula/dracula-theme
+    with open('./objects.json', 'r') as fp:
+        data = json.load(fp)
     sceneObjs['rocket'] = Object(program, [], None)
-    sceneObjs['rocket'].addElement([
-        (0.0, +0.5),
-        (-0.5, -0.5),
-        (0, -0.25),
-        (+0.5, -0.5),
-    ], BASE_COLOR)
-    sceneObjs['rocket'].addElement([
-        (+0.5, -0.5),
-        (-0.5, -0.5),
-        (0, -0.25),
-        (0.0, +0.5),
-    ], [1, 121/255, 198/255])
+    for element in data['rocket']['elements']:
+        sceneObjs["rocket"].addElement(element["points"], element["color"] or BASE_COLOR)
 
-    sceneObjs['spaceship'] = Object(
-        program,
-        [],
-        Path(curvePath(NAV_PATH, [10]), 0)
-    )
-    sceneObjs['spaceship'].addElement([
-        (-1.0, 0.0),
-        (-0.7, 0.5),
-        (0.7, 0.5),
-        (1.0, 0.0),
-        (0.5, -0.5),
-        (-0.5, -0.5),
-    ], [0.38431, 0.44705, 0.64313])
-    sceneObjs['spaceship'].addElement([
-        (-0.5, 0.5),
-        (-0.4, 0.7),
-        (-0.2, 0.8),
-        (0, 0.85),
-        (0.2, 0.8),
-        (0.4, 0.7),
-        (0.5, 0.5),
-    ], [80/255, 250/255, 123/255])
+    sceneObjs['spaceship'] = Object(program, [], Path(curvePath(NAV_PATH, [10]), 0))
+    for element in data['spaceship']["elements"]:
+        sceneObjs["spaceship"].addElement(element["points"], element["color"])
 
-    sceneObjs['amongus'] = Object(
-        program,
-        [],
-        Path(curvePath(AMONG_PATH, [16, 9]), 0)
-    )
-    sceneObjs['amongus'].addElement([
-        (-1.37, 1.02),
-        (-1.15, 1.44),
-        (-0.83, 1.79),
-        (0, 1.79),
-        (0.5, 1.4),
-        (0.78, 0.78),
-        (0.82, -1.97),
-        (0.6, -2.2),
-        (0.18, -2.2),
-        (-0.18, -1.99),
-        (-0.6, -2.19),
-        (-1.03, -2.22),
-        (-1.29, -2),
-        (-1.38, 0),
-        (-0.63, 0.13),
-        (-0.41, 0.61),
-        (-0.75, 0.97),
-        (-1.37, 1.02),
-        (-1.83, 0.99),
-        (-2.12, 0.64),
-        (-1.97, 0.18),
-        (-1.38, 0),
-        (-0.63, 0.13),
-        (-0.41, 0.61),
-        (-0.75, 0.97),
-        (-1.37, 1.02)
-    ], [1, 0.3333, 0.333])  # Corpo
-    sceneObjs['amongus'].addElement([
-        (-1.38, 0),
-        (-0.63, 0.13),
-        (-0.41, 0.61),
-        (-0.75, 0.97),
-        (-1.37, 1.02),
-        (-1.83, 0.99),
-        (-2.12, 0.64),
-        (-1.97, 0.18),
-        (-1.38, 0)
-    ], [0.38431, 0.44705, 0.64313])  # Visor
-    sceneObjs['amongus'].addElement([
-        (0.8, -1.29),
-        (1.42, -1.29),
-        (1.77, -0.78),
-        (1.74, 0.19),
-        (1.42, 0.7),
-        (0.78, 0.78)
-    ], [68/255, 71/255, 90/255])  # Backpack
+    sceneObjs['amongus'] = Object(program, [], Path(curvePath(AMONG_PATH, [16, 9]), 0))
+    for element in data['amongus']["elements"]:
+        sceneObjs["amongus"].addElement(element["points"], element["color"])
 
     sceneObjs['star'] = Object(program, [], None)
-    sceneObjs['star'].addElement([
-        (-2, 0),
-        (0, 4),
-        (2, 0),
-        (0, -4)
-    ], [241/255, 250/255, 140/255])  # Star
+    for element in data['star']["elements"]:
+        sceneObjs['star'].addElement(element["points"], element["color"])
 
     sceneObjs['asteroid'] = Object(program, [], None)
     sceneObjs['asteroid'].addElement([
@@ -302,8 +227,31 @@ def initElements():
         (-3.66, 1.82),
         (-3.68, 1.2),
         (-3.32, 0.4)
-    ], [68/255, 71/255, 90/255])  # Asteroid
+    ], [68/255, 71/255, 90/255]) # Asteroid
 
+    sceneObjs['cratera1'] = Object(program, [], None)
+    sceneObjs['cratera1'].addElement([
+        (0.22, 1.32),
+        (0.68, 1.14),
+        (0.74, 1.74),
+        (0.24, 1.8)
+    ], [40/255, 42/255, 54/255]) # Asteroid
+
+    sceneObjs['cratera2'] = Object(program, [], None)
+    sceneObjs['cratera2'].addElement([
+        (-2.02, 0.3),
+        (-1.92, -0.08),
+        (-1.34, 0.14),
+        (-1.5, 0.7)
+    ], [40/255, 42/255, 54/255]) # Asteroid
+
+    sceneObjs['cratera3'] = Object(program, [], None)
+    sceneObjs['cratera3'].addElement([
+        (-0.5, -1.5),
+        (-0.8, -0.96),
+        (-0.5, -0.5),
+        (-0.08, -0.88)
+    ], [40/255, 42/255, 54/255]) # Asteroid
     return sceneObjs
 
 
