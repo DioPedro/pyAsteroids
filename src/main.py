@@ -12,6 +12,7 @@ t_y = 0
 t_x = 0
 r = 0
 s = 0.15
+ss = 0.15
 sll = 0.1
 r_step = 0.05
 s_step = 0.01
@@ -25,9 +26,16 @@ points: list = []
 
 star_tuples = [
     (0.1, (3, 3)),
-    (0.3, (3, -3)),
+    (0.08, (3, -3)),
     (0.05, (-3, -3)),
-    (0.15, (-3, 3))
+    (0.15, (-3, 3)),
+    (0.06, (1, 4)),
+    (0.04, (2, -2.5)),
+    (0.09, (-3, -1)),
+    (0.11, (-4, 1)),
+    (0.13, (5, 3)),
+    (0.18, (2, -4)),
+    (0.16, (-5, -5))
 ]
 
 window: any = None
@@ -54,7 +62,7 @@ void main() {
 
 
 def key_event(window, key, scancode, action, mods):
-    global t_x, t_y, r
+    global t_x, t_y, r, ss
 
     if key == 87:
         t_y += 0.01  # cima
@@ -88,7 +96,10 @@ def key_event(window, key, scancode, action, mods):
         r += r_step
     if scancode == 26:
         r -= r_step
-
+    if key == 45:
+        ss -= s_step
+    if key == 61:
+        ss += s_step
 
 def multiplica_matriz(a: np.ndarray, b: np.ndarray):
     m_a = a.reshape(4, 4)
@@ -112,7 +123,7 @@ def display(
         starTransform = Transform.stack([
             Transform.scale(scale, scale),
             Transform.translate(*pos),
-            Transform.scale(s, s)
+            Transform.scale(ss, ss)
         ])
         context['star'].transform(starTransform)
 
@@ -138,10 +149,20 @@ def display(
     ar += 0.02
 
     asteroidTransform = Transform.stack([
-        Transform.translate(0.5, 0.5),
+        Transform.scale(0.3, 0.3),
+        Transform.translate(*context['spaceship'].path.atPosition()),
         Transform.scale(s, s)
     ])
     context['asteroid'].transform(asteroidTransform)
+
+    crateraTransform = Transform.stack([
+        Transform.scale(0.45, 0.45),
+        Transform.translate(*context['spaceship'].path.atPosition()),
+        Transform.scale(s, s)
+    ])
+    context['cratera1'].transform(crateraTransform)
+    context['cratera2'].transform(crateraTransform)
+    context['cratera3'].transform(crateraTransform)
 
     glfw.swap_buffers(window)
 
@@ -199,9 +220,55 @@ def initElements():
         sceneObjs['star'].addElement(element["points"], element["color"])
 
     sceneObjs['asteroid'] = Object(program, [], None)
-    for element in data['asteroid']["elements"]:
-        sceneObjs["asteroid"].addElement(element["points"], element["color"])
+    sceneObjs['asteroid'].addElement([
+        (-4, 0),
+        (-3.62, -0.88),
+        (-2.94, -1.6),
+        (-1.52, -2.42),
+        (-0.32, -2.5),
+        (0.84, -2.16),
+        (1.74, -1.58),
+        (1.6, -0.76),
+        (2.18, -0.34),
+        (2.54, 0.62),
+        (2.14, 1.3),
+        (1.66, 2.02),
+        (1.46, 2.92),
+        (0.48, 3.34),
+        (-0.22, 2.78),
+        (-1, 3),
+        (-1.64, 3.32),
+        (-2.2, 2.76),
+        (-2, 2),
+        (-2.9, 2.26),
+        (-3.66, 1.82),
+        (-3.68, 1.2),
+        (-3.32, 0.4)
+    ], [68/255, 71/255, 90/255]) # Asteroid
 
+    sceneObjs['cratera1'] = Object(program, [], None)
+    sceneObjs['cratera1'].addElement([
+        (0.22, 1.32),
+        (0.68, 1.14),
+        (0.74, 1.74),
+        (0.24, 1.8)
+    ], [40/255, 42/255, 54/255]) # Asteroid
+
+    sceneObjs['cratera2'] = Object(program, [], None)
+    sceneObjs['cratera2'].addElement([
+        (-2.02, 0.3),
+        (-1.92, -0.08),
+        (-1.34, 0.14),
+        (-1.5, 0.7)
+    ], [40/255, 42/255, 54/255]) # Asteroid
+
+    sceneObjs['cratera3'] = Object(program, [], None)
+    sceneObjs['cratera3'].addElement([
+        (-0.5, -1.5),
+        (-0.8, -0.96),
+        (-0.5, -0.5),
+        (-0.08, -0.88)
+    ], [40/255, 42/255, 54/255]) # Asteroid
     return sceneObjs
 
 
