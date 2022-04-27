@@ -1,3 +1,4 @@
+from matplotlib.style import context
 from OpenGL.GL import glCreateProgram, GL_VERTEX_SHADER, glLinkProgram, glGetProgramiv, glGetProgramInfoLog, GL_LINK_STATUS, glUseProgram, glClear, glClearColor, GL_COLOR_BUFFER_BIT, GL_FRAGMENT_SHADER
 import glfw
 
@@ -21,7 +22,6 @@ ax = [i/1000 for i in range(-50000, 51000, 50)]
 ay = [i/1000 for i in range(50000, -51000, -50)]
 ar = 0
 
-sceneObjs: dict = {}
 points: list = []
 
 window: any = None
@@ -94,10 +94,7 @@ def multiplica_matriz(a: np.ndarray, b: np.ndarray):
 
 
 def display(
-        rocket: Object,
-        spaceship: Object,
-        amongus: Object,
-        star: Object,
+        context: dict,
         window: any
 ):
     global ar
@@ -111,21 +108,20 @@ def display(
         Transform.rotate(r),
         Transform.translate(t_x, t_y)
     ])
-    rocket.transform(rocketTransform)
+    context['rocket'].transform(rocketTransform)
 
     spaceshipTransform = Transform.stack([
-        Transform.translate(*spaceship.path.atPosition()),
+        Transform.translate(*context['spaceship'].path.atPosition()),
         Transform.scale(sll, sll)
     ])
-    spaceship.transform(spaceshipTransform)
+    context['spaceship'].transform(spaceshipTransform)
 
     amongusTranform = Transform.stack([
         Transform.rotate(ar),
-        Transform.translate(*amongus.path.atPosition()),
+        Transform.translate(*context['amongus'].path.atPosition()),
         Transform.scale(ams, ams)
     ])
-    amongus.transform(amongusTranform)
-
+    context['amongus'].transform(amongusTranform)
     ar += 0.5
 
     glfw.swap_buffers(window)
@@ -162,23 +158,25 @@ def glInit():
 
 
 def initElements():
+    sceneObjs = dict()
+    
     # Paleta de cores: https://github.com/dracula/dracula-theme
-    rocket = Object(program, [], None)
-    rocket.addElement([
+    sceneObjs['rocket'] = Object(program, [], None)
+    sceneObjs['rocket'].addElement([
         (0.0, +0.5),
         (-0.5, -0.5),
         (0, -0.25),
         (+0.5, -0.5),
     ], BASE_COLOR)
-    rocket.addElement([
+    sceneObjs['rocket'].addElement([
         (+0.5, -0.5),
         (-0.5, -0.5),
         (0, -0.25),
         (0.0, +0.5),
     ], [1, 121/255, 198/255])
 
-    spaceship = Object(program, [], Path(curvePath(NAV_PATH, [10]), 0))
-    spaceship.addElement([
+    sceneObjs['spaceship'] = Object(program, [], Path(curvePath(NAV_PATH, [10]), 0))
+    sceneObjs['spaceship'].addElement([
         (-1.0, 0.0),
         (-0.7, 0.5),
         (0.7, 0.5),
@@ -186,7 +184,7 @@ def initElements():
         (0.5, -0.5),
         (-0.5, -0.5),
     ], [0.38431, 0.44705, 0.64313])
-    spaceship.addElement([
+    sceneObjs['spaceship'].addElement([
         (-0.5, 0.5),
         (-0.4, 0.7),
         (-0.2, 0.8),
@@ -196,8 +194,8 @@ def initElements():
         (0.5, 0.5),
     ], [80/255, 250/255, 123/255])
 
-    amongus = Object(program, [], Path(curvePath(AMONG_PATH, [16, 9]), 0))
-    amongus.addElement([
+    sceneObjs['amongus'] = Object(program, [], Path(curvePath(AMONG_PATH, [16, 9]), 0))
+    sceneObjs['amongus'].addElement([
         (-1.37, 1.02),
         (-1.15, 1.44),
         (-0.83, 1.79),
@@ -225,7 +223,7 @@ def initElements():
         (-0.75, 0.97),
         (-1.37, 1.02)
     ], [1, 0.3333, 0.333])  # Corpo
-    amongus.addElement([
+    sceneObjs['amongus'].addElement([
         (-1.38, 0),
         (-0.63, 0.13),
         (-0.41, 0.61),
@@ -236,7 +234,7 @@ def initElements():
         (-1.97, 0.18),
         (-1.38, 0)
     ], [0.38431, 0.44705, 0.64313])  # Visor
-    amongus.addElement([
+    sceneObjs['amongus'].addElement([
         (0.8, -1.29),
         (1.42, -1.29),
         (1.77, -0.78),
@@ -245,30 +243,24 @@ def initElements():
         (0.78, 0.78)
     ], [68/255, 71/255, 90/255])  # Backpack
 
-    star = Object(program, [], None)
-    star.addElement([
+    sceneObjs['star'] = Object(program, [], None)
+    sceneObjs['star'].addElement([
         (-2, 0),
         (0, 4),
         (2, 0),
         (0, -4)
     ], [241/255, 250/255, 140/255]) # Star
-
-    sceneObjs["rocket"] = rocket
-    sceneObjs["spaceship"] = spaceship
-    sceneObjs["amongus"] = amongus
-    sceneObjs["star"] = star
+    
+    return sceneObjs
 
 
 def main():
     glfwInit()
     glInit()
-    initElements()
+    sceneObjs = initElements()
     while not glfw.window_should_close(window):
         display(
-            sceneObjs["rocket"],
-            sceneObjs["spaceship"],
-            sceneObjs["amongus"],
-            sceneObjs["star"],
+            sceneObjs,
             window
         )
 
