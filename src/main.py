@@ -1,13 +1,12 @@
-from matplotlib.style import context
 from OpenGL.GL import glCreateProgram, GL_VERTEX_SHADER, glLinkProgram, glGetProgramiv, glGetProgramInfoLog, GL_LINK_STATUS, glUseProgram, glClear, glClearColor, GL_COLOR_BUFFER_BIT, GL_FRAGMENT_SHADER
 import glfw
 
+import json
 from classes.Path import Path, curvePath, NAV_PATH, AMONG_PATH
 from classes.Shader import Shader
 from classes.Object import Object
 import classes.Transform as Transform
 import numpy as np
-from typing import Callable, Tuple
 
 t_y = 0
 t_x = 0
@@ -200,97 +199,25 @@ def glInit():
 
 def initElements():
     sceneObjs = dict()
-    
-    # Paleta de cores: https://github.com/dracula/dracula-theme
+    data = None
+
+    with open('./objects.json', 'r') as fp:
+        data = json.load(fp)
     sceneObjs['rocket'] = Object(program, [], None)
-    sceneObjs['rocket'].addElement([
-        (0.0, +0.5),
-        (-0.5, -0.5),
-        (0, -0.25),
-        (+0.5, -0.5),
-    ], BASE_COLOR)
-    sceneObjs['rocket'].addElement([
-        (+0.5, -0.5),
-        (-0.5, -0.5),
-        (0, -0.25),
-        (0.0, +0.5),
-    ], [1, 121/255, 198/255])
+    for element in data['rocket']['elements']:
+        sceneObjs["rocket"].addElement(element["points"], element["color"] or BASE_COLOR)
 
     sceneObjs['spaceship'] = Object(program, [], Path(curvePath(NAV_PATH, [10]), 0))
-    sceneObjs['spaceship'].addElement([
-        (-1.0, 0.0),
-        (-0.7, 0.5),
-        (0.7, 0.5),
-        (1.0, 0.0),
-        (0.5, -0.5),
-        (-0.5, -0.5),
-    ], [0.38431, 0.44705, 0.64313])
-    sceneObjs['spaceship'].addElement([
-        (-0.5, 0.5),
-        (-0.4, 0.7),
-        (-0.2, 0.8),
-        (0, 0.85),
-        (0.2, 0.8),
-        (0.4, 0.7),
-        (0.5, 0.5),
-    ], [80/255, 250/255, 123/255])
+    for element in data['spaceship']["elements"]:
+        sceneObjs["spaceship"].addElement(element["points"], element["color"])
 
     sceneObjs['amongus'] = Object(program, [], Path(curvePath(AMONG_PATH, [16, 9]), 0))
-    sceneObjs['amongus'].addElement([
-        (-1.37, 1.02),
-        (-1.15, 1.44),
-        (-0.83, 1.79),
-        (0, 1.79),
-        (0.5, 1.4),
-        (0.78, 0.78),
-        (0.82, -1.97),
-        (0.6, -2.2),
-        (0.18, -2.2),
-        (-0.18, -1.99),
-        (-0.6, -2.19),
-        (-1.03, -2.22),
-        (-1.29, -2),
-        (-1.38, 0),
-        (-0.63, 0.13),
-        (-0.41, 0.61),
-        (-0.75, 0.97),
-        (-1.37, 1.02),
-        (-1.83, 0.99),
-        (-2.12, 0.64),
-        (-1.97, 0.18),
-        (-1.38, 0),
-        (-0.63, 0.13),
-        (-0.41, 0.61),
-        (-0.75, 0.97),
-        (-1.37, 1.02)
-    ], [1, 0.3333, 0.333])  # Corpo
-    sceneObjs['amongus'].addElement([
-        (-1.38, 0),
-        (-0.63, 0.13),
-        (-0.41, 0.61),
-        (-0.75, 0.97),
-        (-1.37, 1.02),
-        (-1.83, 0.99),
-        (-2.12, 0.64),
-        (-1.97, 0.18),
-        (-1.38, 0)
-    ], [0.38431, 0.44705, 0.64313])  # Visor
-    sceneObjs['amongus'].addElement([
-        (0.8, -1.29),
-        (1.42, -1.29),
-        (1.77, -0.78),
-        (1.74, 0.19),
-        (1.42, 0.7),
-        (0.78, 0.78)
-    ], [68/255, 71/255, 90/255])  # Backpack
+    for element in data['amongus']["elements"]:
+        sceneObjs["amongus"].addElement(element["points"], element["color"])
 
     sceneObjs['star'] = Object(program, [], None)
-    sceneObjs['star'].addElement([
-        (-2, 0),
-        (0, 4),
-        (2, 0),
-        (0, -4)
-    ], [241/255, 250/255, 140/255]) # Star
+    for element in data['star']["elements"]:
+        sceneObjs['star'].addElement(element["points"], element["color"])
 
     sceneObjs['asteroid'] = Object(program, [], None)
     sceneObjs['asteroid'].addElement([
@@ -342,7 +269,6 @@ def initElements():
         (-0.5, -0.5),
         (-0.08, -0.88)
     ], [40/255, 42/255, 54/255]) # Asteroid
-    
     return sceneObjs
 
 
