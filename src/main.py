@@ -1,4 +1,3 @@
-from matplotlib.style import context
 from OpenGL.GL import glCreateProgram, GL_VERTEX_SHADER, glLinkProgram, glGetProgramiv, glGetProgramInfoLog, GL_LINK_STATUS, glUseProgram, glClear, glClearColor, GL_COLOR_BUFFER_BIT, GL_FRAGMENT_SHADER
 import glfw
 
@@ -182,29 +181,29 @@ def glInit():
 def initElements():
     sceneObjs = dict()
     data = None
-    
+
     with open('./objects.json', 'r') as fp:
         data = json.load(fp)
-    
+
     sceneObjs['rocket'] = Object(program, [], None)
-    for element in data['rocket'].elements:
-        sceneObjs.addElement(element.points, element.color)
+    for element in data['rocket']['elements']:
+        sceneObjs["rocket"].addElement(element["points"], element["color"] or BASE_COLOR)
 
     sceneObjs['spaceship'] = Object(program, [], Path(curvePath(NAV_PATH, [10]), 0))
-    for element in data['spaceship'].elements:
-            sceneObjs.addElement(element.points, element.color)
-            
+    for element in data['spaceship']["elements"]:
+        sceneObjs["spaceship"].addElement(element["points"], element["color"])
+
     sceneObjs['amongus'] = Object(program, [], Path(curvePath(AMONG_PATH, [16, 9]), 0))
-    for element in data['amongus'].elements:
-        sceneObjs.addElement(element.points, element.color)
-        
+    for element in data['amongus']["elements"]:
+        sceneObjs["amongus"].addElement(element["points"], element["color"])
+
     sceneObjs['star'] = Object(program, [], None)
-    for element in data['star'].elements:
-        sceneObjs.addElement(element.points, element.color)
-        
+    for element in data['star']["elements"]:
+        sceneObjs['star'].addElement(element["points"], element["color"])
+
     sceneObjs['asteroid'] = Object(program, [], None)
-    for element in data['asteroid'].elements:
-        sceneObjs.addElement(element.points, element.color)
+    for element in data['asteroid']["elements"]:
+        sceneObjs["asteroid"].addElement(element["points"], element["color"])
 
     return sceneObjs
 
