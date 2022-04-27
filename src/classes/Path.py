@@ -1,5 +1,5 @@
 from typing import List, Tuple, Callable
-import numpy as np
+import numpy as np    
 
 def NAV_PATH(amplitude: float, x: float):
     return amplitude * (np.sin(2 * x) + (np.sin(6 * x) / 4))
