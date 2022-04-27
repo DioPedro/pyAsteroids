@@ -13,7 +13,6 @@ t_x = 0
 r = 0
 s = 0.15
 sll = 0.1
-sp_idx = 0
 r_step = 0.05
 s_step = 0.01
 
@@ -21,7 +20,6 @@ ams = 0.05
 ax = [i/1000 for i in range(-50000, 51000, 50)]
 ay = [i/1000 for i in range(50000, -51000, -50)]
 ar = 0
-am_idx = 0
 
 sceneObjs: dict = {}
 points: list = []
@@ -99,9 +97,10 @@ def display(
         rocket: Object,
         spaceship: Object,
         amongus: Object,
+        star: Object,
         window: any
 ):
-    global am_idx, sp_idx, ar
+    global ar
     glfw.poll_events()
 
     glClearColor(BASE_COLOR[0], BASE_COLOR[1], BASE_COLOR[2], 1.0)
@@ -115,25 +114,19 @@ def display(
     rocket.transform(rocketTransform)
 
     spaceshipTransform = Transform.stack([
-        Transform.translate(points[sp_idx][0], points[sp_idx][1]),
+        Transform.translate(*spaceship.path.atPosition()),
         Transform.scale(sll, sll)
     ])
     spaceship.transform(spaceshipTransform)
 
     amongusTranform = Transform.stack([
-        Transform.translate(ax[am_idx], ay[am_idx]),
-        Transform.scale(ams, ams),
-        Transform.rotate(ar)
+        Transform.rotate(ar),
+        Transform.translate(*amongus.path.atPosition()),
+        Transform.scale(ams, ams)
     ])
     amongus.transform(amongusTranform)
 
-    if am_idx + 1 < len(ax):
-        am_idx += 1
-        ar += 0.01
-
-    if sp_idx + 1 == len(points):
-        sp_idx = 0
-    sp_idx += 1
+    ar += 0.5
 
     glfw.swap_buffers(window)
 
@@ -170,7 +163,7 @@ def glInit():
 
 def initElements():
     # Paleta de cores: https://github.com/dracula/dracula-theme
-    rocket = Object(program, [])
+    rocket = Object(program, [], None)
     rocket.addElement([
         (0.0, +0.5),
         (-0.5, -0.5),
@@ -203,7 +196,7 @@ def initElements():
         (0.5, 0.5),
     ], [80/255, 250/255, 123/255])
 
-    amongus = Object(program, [], Path(curvePath(AMONG_PATH, [4, 9]), 0))
+    amongus = Object(program, [], Path(curvePath(AMONG_PATH, [16, 9]), 0))
     amongus.addElement([
         (-1.37, 1.02),
         (-1.15, 1.44),
@@ -252,9 +245,18 @@ def initElements():
         (0.78, 0.78)
     ], [68/255, 71/255, 90/255])  # Backpack
 
+    star = Object(program, [], None)
+    star.addElement([
+        (-2, 0),
+        (0, 4),
+        (2, 0),
+        (0, -4)
+    ], [241/255, 250/255, 140/255]) # Star
+
     sceneObjs["rocket"] = rocket
     sceneObjs["spaceship"] = spaceship
     sceneObjs["amongus"] = amongus
+    sceneObjs["star"] = star
 
 
 def main():
@@ -266,6 +268,7 @@ def main():
             sceneObjs["rocket"],
             sceneObjs["spaceship"],
             sceneObjs["amongus"],
+            sceneObjs["star"],
             window
         )
 
