@@ -1,4 +1,4 @@
-from OpenGL.GL import glCreateProgram, GL_VERTEX_SHADER, glLinkProgram, glGetProgramiv, glGetProgramInfoLog, GL_LINK_STATUS, glUseProgram, glClear, glClearColor, GL_COLOR_BUFFER_BIT, GL_FRAGMENT_SHADER
+from OpenGL.GL import glCreateProgram, GL_VERTEX_SHADER, glLinkProgram, glGetProgramiv, glGetProgramInfoLog, GL_LINK_STATUS, glUseProgram, glClear, glClearColor, GL_COLOR_BUFFER_BIT, GL_FRAGMENT_SHADER, glBindFragDataLocation
 import glfw
 
 import json
@@ -18,8 +18,6 @@ r_step = 0.05
 s_step = 0.01
 
 ams = 0.05
-ax = [i/1000 for i in range(-50000, 51000, 50)]
-ay = [i/1000 for i in range(50000, -51000, -50)]
 ar = 0
 
 points: list = []
@@ -29,13 +27,6 @@ star_tuples = [
     (0.08, (3, -3)),
     (0.05, (-3, -3)),
     (0.15, (-3, 3)),
-    (0.06, (1, 4)),
-    (0.04, (2, -2.5)),
-    (0.09, (-3, -1)),
-    (0.11, (-4, 1)),
-    (0.13, (5, 3)),
-    (0.18, (2, -4)),
-    (0.16, (-5, -5))
 ]
 
 window: any = None
@@ -43,22 +34,11 @@ program: any = None
 
 BASE_COLOR = [98/255, 114/255, 164/255]
 
-VERTEX_CODE = """
-attribute vec2 position;
-uniform mat4 mat_transformation;
+with open("vShader.glsl", "r") as f:
+    VERTEX_CODE = f.read()
 
-void main() {
-    gl_Position = mat_transformation * vec4(position, 0.0, 1.0);
-}
-"""
-
-FRAGMENT_CODE = """
-uniform vec4 color;
-
-void main() {
-    gl_FragColor = color;
-}
-"""
+with open("fShader.glsl", "r") as f:
+    FRAGMENT_CODE = f.read()
 
 
 def key_event(window, key, scancode, action, mods):
@@ -174,6 +154,8 @@ def glfwInit():
     window = glfw.create_window(600, 600, "Cores", None, None)
     glfw.window_hint(glfw.RESIZABLE, glfw.FALSE)
     glfw.window_hint(glfw.MAXIMIZED, glfw.FALSE)
+    glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 4)
+    glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
     glfw.make_context_current(window)
     glfw.set_key_callback(window, key_event)
     glfw.show_window(window)
@@ -192,6 +174,7 @@ def glInit():
         print(glGetProgramInfoLog(program))
         raise RuntimeError('Linking error')
 
+    glBindFragDataLocation(program, 0, "outColor")
     glUseProgram(program)
 
     del vertexShader, fragShader
