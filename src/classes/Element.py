@@ -1,4 +1,4 @@
-from OpenGL.GL import glGenVertexArrays, glGenBuffers, glBindVertexArray, glBindBuffer, glBufferData, GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW, glGetAttribLocation, glVertexAttribPointer, glEnableVertexAttribArray, glDrawElements, GL_LINE_LOOP, GL_UNSIGNED_INT, GL_FLOAT, GL_TRIANGLE_FAN, GL_LINE_LOOP, glGetUniformLocation, glUniform4f
+from OpenGL.GL import glGenVertexArrays, glGenBuffers, glBindVertexArray, glBindBuffer, glBufferData, GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW, glGetAttribLocation, glVertexAttribPointer, glEnableVertexAttribArray, glDrawElements, GL_LINE_LOOP, GL_UNSIGNED_INT, GL_FLOAT, glGetUniformLocation, glUniform4f
 import numpy as np
 from typing import List, Tuple
 import ctypes
@@ -13,12 +13,14 @@ class Element:
     program: any = None
     color: List[float] = []
     BASE_COLOR = [68/255, 71/255, 90/255]
+    mode: any = None
 
     def __init__(
             self,
             verts: Tuple[Tuple[float, ...], ...],
             elements: Tuple[int, ...],
             color: List[float],
+            mode: any,
             program: any
     ):
         self.verts = verts
@@ -28,8 +30,12 @@ class Element:
         self.vbo = glGenBuffers(1)
         self.ebo = glGenBuffers(1)
         self.color = color
+        self.mode = mode
 
-        vertices = np.zeros(len(verts), [("position", np.float32, len(verts[0]))])
+        vertices = np.zeros(
+            len(verts),
+            [("position", np.float32, len(verts[0]))]
+        )
         vertices['position'] = verts
 
         glBindVertexArray(self.vao)
@@ -61,15 +67,27 @@ class Element:
 
     def draw(self):
         loc_color = glGetUniformLocation(self.program, "color")
-        glUniform4f(loc_color, self.color[0], self.color[2], self.color[2], 1.0)
+        glUniform4f(
+            loc_color,
+            self.color[0],
+            self.color[2],
+            self.color[2],
+            1.0
+        )
         glDrawElements(
-            GL_TRIANGLE_FAN,
+            self.mode,
             self.elements.size,
             GL_UNSIGNED_INT,
             None
         )
 
-        glUniform4f(loc_color, self.BASE_COLOR[0], self.BASE_COLOR[2], self.BASE_COLOR[2], 1.0)
+        glUniform4f(
+            loc_color,
+            self.BASE_COLOR[0],
+            self.BASE_COLOR[2],
+            self.BASE_COLOR[2],
+            1.0
+        )
         glDrawElements(
             GL_LINE_LOOP,
             self.elements.size,
