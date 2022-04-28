@@ -214,7 +214,7 @@ def initElements():
     sceneObjs['asteroid'] = Object(
         program,
         [],
-        Path(curvePath(AST_PATH, [5]), 0)
+        Path(curvePath(AST_PATH, [10]), 0)
     )
     for element in data['asteroid']["elements"]:
         sceneObjs['asteroid'].addElement(
