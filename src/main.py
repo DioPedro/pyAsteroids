@@ -8,13 +8,17 @@ from classes.Object import Object
 import classes.Transform as Transform
 import numpy as np
 
+FRAME_RATE = 60
+WINDOW_WIDTH = 600
+WINDOW_HEIGHT = 600
+
 t_y = 0
 t_x = 0
-r = 0
+# r = 0
 s = 0.15
 ss = 0.15
 sll = 0.1
-r_step = 0.05
+r_step = 0.1
 s_step = 0.01
 
 ams = 0.05
@@ -23,10 +27,11 @@ ar = 0
 points: list = []
 
 star_tuples = [
-    (0.1, (3, 3)),
-    (0.08, (3, -3)),
-    (0.05, (-3, -3)),
-    (0.15, (-3, 3)),
+    (0.1, (2, 3)),
+    (0.08, (3, -3.4)),
+    (0.05, (-5, -2.6)),
+    (0.15, (-3, 4)),
+    (0.04, (0.14, 0.2)),
 ]
 
 window: any = None
@@ -42,51 +47,20 @@ with open("fShader.glsl", "r") as f:
 
 
 def key_event(window, key, scancode, action, mods):
-    global t_x, t_y, r, ss
+    global t_x, t_y, ss
 
-    if key == 87:
+    if scancode == 25:
         t_y += 0.01  # cima
-        r = 0
-    if key == 83:
+    if scancode == 39:
         t_y -= 0.01  # baixo
-        r = r_step * 64
-    if key == 65:
+    if scancode == 38:
         t_x -= 0.01  # esquerda
-        r = r_step * 32
-    if key == 68:
+    if scancode == 40:
         t_x += 0.01  # direita
-        r = -r_step * 32
-    if key == 69:  # diagonal superior direita (1° quadrante)
-        t_y += 0.01
-        t_x += 0.01
-        r = -r_step * 16
-    if key == 81:  # diagonal superior esquerda (2° quadrante)
-        t_y += 0.01
-        t_x -= 0.01
-        r = r_step * 16
-    if key == 90:  # diagonal inferior esquerda (3° quadrante)
-        t_y -= 0.01
-        t_x -= 0.01
-        r = r_step * 48
-    if key == 67:  # diagonal inferior direita (4° quadrante)
-        t_y -= 0.01
-        t_x += 0.01
-        r = -r_step * 48
-    if scancode == 24:
-        r += r_step
-    if scancode == 26:
-        r -= r_step
     if key == 45:
         ss -= s_step
     if key == 61:
         ss += s_step
-
-def multiplica_matriz(a: np.ndarray, b: np.ndarray):
-    m_a = a.reshape(4, 4)
-    m_b = b.reshape(4, 4)
-    m_c = np.dot(m_a, m_b)
-    c = m_c.reshape(1, 16)
-    return c
 
 
 def display(
@@ -99,9 +73,23 @@ def display(
     glClearColor(BASE_COLOR[0], BASE_COLOR[1], BASE_COLOR[2], 1.0)
     glClear(GL_COLOR_BUFFER_BIT)
 
+    mX, mY = glfw.get_cursor_pos(window)
+    mX = min(mX, WINDOW_WIDTH)
+    mX = max(mX, 0)
+    mY = WINDOW_HEIGHT - min(mY, WINDOW_HEIGHT)
+    mY = max(mY, 0)
+    mX -= WINDOW_WIDTH/2
+    mY -= WINDOW_HEIGHT/2
+    mX /= WINDOW_WIDTH/2
+    mY /= WINDOW_HEIGHT/2
+
+    dx = mX - t_x
+    dy = mY - t_y
+    r = np.arctan2(dy, dx) - 0.5*np.pi
+
     for scale, pos in star_tuples:
         starTransform = Transform.stack([
-            Transform.scale(scale, scale),
+            Transform.scale(scale*2, scale*2),
             Transform.translate(*pos),
             Transform.scale(ss, ss)
         ])
@@ -131,7 +119,7 @@ def display(
     rocketTransform = Transform.stack([
         Transform.scale(s, s),
         Transform.rotate(r),
-        Transform.translate(t_x, t_y)
+        Transform.translate(t_x, t_y),
     ])
     context['rocket'].transform(rocketTransform)
 
@@ -142,7 +130,13 @@ def glfwInit():
     global window
     glfw.init()
     glfw.window_hint(glfw.VISIBLE, glfw.FALSE)
-    window = glfw.create_window(600, 600, "Cores", None, None)
+    window = glfw.create_window(
+        WINDOW_WIDTH,
+        WINDOW_HEIGHT,
+        "Amongus",
+        None,
+        None
+    )
     glfw.window_hint(glfw.RESIZABLE, glfw.FALSE)
     glfw.window_hint(glfw.MAXIMIZED, glfw.FALSE)
     glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 4)
@@ -179,23 +173,55 @@ def initElements():
         data = json.load(fp)
     sceneObjs['rocket'] = Object(program, [], None)
     for element in data['rocket']['elements']:
-        sceneObjs["rocket"].addElement(element["points"], element["color"] or BASE_COLOR)
+        sceneObjs["rocket"].addElement(
+            element["points"],
+            element["elementList"],
+            element["color"] or BASE_COLOR
+        )
 
-    sceneObjs['spaceship'] = Object(program, [], Path(curvePath(NAV_PATH, [10]), 0))
+    sceneObjs['spaceship'] = Object(
+        program,
+        [],
+        Path(curvePath(NAV_PATH, [10]), 0)
+    )
     for element in data['spaceship']["elements"]:
-        sceneObjs["spaceship"].addElement(element["points"], element["color"])
+        sceneObjs["spaceship"].addElement(
+            element["points"],
+            element["elementList"],
+            element["color"] or BASE_COLOR
+        )
 
-    sceneObjs['amongus'] = Object(program, [], Path(curvePath(AMONG_PATH, [16, 9]), 0))
+    sceneObjs['amongus'] = Object(
+        program,
+        [],
+        Path(curvePath(AMONG_PATH, [16, 9]), 0)
+    )
     for element in data['amongus']["elements"]:
-        sceneObjs["amongus"].addElement(element["points"], element["color"])
+        sceneObjs["amongus"].addElement(
+            element["points"],
+            element["elementList"],
+            element["color"] or BASE_COLOR
+        )
 
     sceneObjs['star'] = Object(program, [], None)
     for element in data['star']["elements"]:
-        sceneObjs['star'].addElement(element["points"], element["color"])
+        sceneObjs['star'].addElement(
+            element["points"],
+            element["elementList"],
+            element["color"] or BASE_COLOR
+        )
 
-    sceneObjs['asteroid'] = Object(program, [], Path(curvePath(AST_PATH, [5]), 0))
+    sceneObjs['asteroid'] = Object(
+        program,
+        [],
+        Path(curvePath(AST_PATH, [10]), 0)
+    )
     for element in data['asteroid']["elements"]:
-        sceneObjs['asteroid'].addElement(element["points"], element["color"])
+        sceneObjs['asteroid'].addElement(
+            element["points"],
+            element["elementList"],
+            element["color"] or BASE_COLOR
+        )
 
     return sceneObjs
 
@@ -204,11 +230,17 @@ def main():
     glfwInit()
     glInit()
     sceneObjs = initElements()
+    lastFrame = currentFrame = glfw.get_time()
     while not glfw.window_should_close(window):
+        currentFrame = glfw.get_time()
+        if currentFrame - lastFrame < 1.0/FRAME_RATE:
+            continue
+
         display(
             sceneObjs,
             window
         )
+        lastFrame = currentFrame
 
     glfw.terminate()
 
