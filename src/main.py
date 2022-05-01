@@ -14,7 +14,6 @@ WINDOW_HEIGHT = 600
 
 t_y = 0
 t_x = 0
-# r = 0
 s = 0.15
 ss = 0.15
 sll = 0.1
@@ -23,8 +22,6 @@ s_step = 0.01
 
 ams = 0.05
 ar = 0
-
-points: list = []
 
 star_tuples = [
     (0.1, (2, 3)),
@@ -46,7 +43,13 @@ with open("fShader.glsl", "r") as f:
     FRAGMENT_CODE = f.read()
 
 
-def key_event(window, key, scancode, action, mods):
+def key_event(
+        window: any,
+        key: any,
+        scancode: any,
+        action: any,
+        mods: any
+):
     global t_x, t_y, ss
 
     if scancode == 25:
